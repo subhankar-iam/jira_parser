@@ -59,7 +59,7 @@ func init() {
 			{
 				EndPoint: "the end point goes here",
 				Request: `the request  body goes here it might be request file location or request body in json format ` +
-					`if its a file and only the file name is given the request_file_save_path you add and get the full path like outputFormat.RequestFileSaveLocation, outputFormat.Scenarios[0].Request. for example if requestFileSaveLocation is feature/headers and headerfile name is response.json the answer would be feature/headers/response.json`,
+					`if its a file and only the file name is given the request_file_save_path you add and get the full path like outputFormat.RequestFileSaveLocation, outputFormat.Scenarios[0].Request. for example if requestFileSaveLocation is feature/headers and headerfile name is response.json the answer would be feature/headers/response.json. please use the full filepath`,
 				Method:                 "the request method POST,GET,PUT,DELETE",
 				StatusCode:             http.StatusOK, //the status code goes here
 				AdditionalInstructions: []string{"Any other steps needed to be done can be mentioned here"},

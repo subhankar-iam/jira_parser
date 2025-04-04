@@ -54,8 +54,8 @@ func Ask_Gemini(prompt string) (string, error) {
 
 	var response_json string
 	if len(response.Candidates) > 0 && len(response.Candidates[0].Content.Parts) > 0 {
-		response_json = strings.ReplaceAll(response.Candidates[0].Content.Parts[0].Text, "```", "")
-		response_json = strings.ReplaceAll(response_json, "json", "")
+		response_json = strings.Replace(response.Candidates[0].Content.Parts[0].Text, "```json", "", -1)
+		response_json = strings.Replace(response_json, "```", "", -1)
 	} else {
 		fmt.Println("No text found")
 	}

@@ -7,7 +7,6 @@ import (
 	"github.com/go-chi/cors"
 	"jira-parser/jira_fetch"
 	"net/http"
-	"strings"
 )
 
 func setUpRoute() *chi.Mux {
@@ -23,14 +22,13 @@ func setUpRoute() *chi.Mux {
 	router.HandleFunc("/jira/{jira_id}", func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "jira_id")
 		resp, err := jira_fetch.Fetch(id)
-		cleanedText := strings.Replace(resp, "```json", "", -1)
-		cleanedText = strings.Replace(cleanedText, "```", "", -1)
+		fmt.Println(resp)
 		if err != nil {
 			fmt.Println(err)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		err = json2.NewEncoder(w).Encode(cleanedText)
+		err = json2.NewEncoder(w).Encode(resp)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
