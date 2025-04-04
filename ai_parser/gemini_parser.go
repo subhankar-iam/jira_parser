@@ -14,6 +14,7 @@ type GeminiParser struct {
 	FileSaveLocation FileSaveLocation `json:"file_save_location"`
 	Background       Background       `json:"background"`
 	Scenarios        []Scenario       `json:"scenarios"`
+	FileName         string           `json:"file_name"`
 }
 
 type Background struct {
@@ -41,6 +42,7 @@ var outputFormat GeminiParser
 
 func init() {
 	outputFormat = GeminiParser{
+		FileName: "intelligently define the expected file name for this feature file",
 		FileSaveLocation: FileSaveLocation{
 			RequestFileSaveLocation: "location at which the request file would be saved. default: bdd/test/resources/features/headers/ if the header file exists", //dont assume anything by yourself if its null then let it be null
 			HeaderFileSaveLocation:  "location at which the header file would be saved. default: bdd/test/resources/features/",                                    //dont assume anything by yourself if its null then let it be null
@@ -82,7 +84,7 @@ func ParseGemini(json_input string, file_content map[string]string) (string, err
 		log.Fatalf("Failed to marshal json: %v", err)
 	}
 	gemini_prompt := fmt.Sprintf(constants.Parser_prompt, json_input, "["+strings.Join(fileNames, ",")+"]", string(output_json_format))
-	gemini_prompt = strings.ReplaceAll(gemini_prompt, `"`, `''`)
+	gemini_prompt = strings.ReplaceAll(gemini_prompt, `"`, `'`)
 	json_resp, err := Ask_Gemini(gemini_prompt)
 	if err != nil {
 		return "", err

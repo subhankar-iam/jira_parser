@@ -13,7 +13,9 @@ const (
                      of strings, the request file location and header file location can be dynamically set if their respective
 					 saving path is given so we can intelligently chose the name from the filenames given and the requestpath should be.
                      request_file_save_path+'/'+request_file full path (i.e feature/<..>/<xxx.json>) , If the user has provided the header file and the path for it 
- 					 to save then header_file_save_path +'/'+header_file_name.json else it should be null. dont assume any path by yourself
+ 					 to save then header_file_save_path +'/'+header_file_name.json else it should be null. dont assume any path by yourself. And intelligently name 
+					 the feature file with path from the classpath and store it in file_name field. the name should be a holistic name overview and should be under features file.
+					 Handle some minor errors such as spelling mistakes.
 
                      DISCLAIMER: Alert !! Stricly only send the output in json format and follow the output json format
 					 never add any extra fields in that json, and dont assume anything on your own, No explanation , warning
