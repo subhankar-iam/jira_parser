@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 type Response struct {
@@ -53,7 +54,8 @@ func Ask_Gemini(prompt string) (string, error) {
 
 	var response_json string
 	if len(response.Candidates) > 0 && len(response.Candidates[0].Content.Parts) > 0 {
-		response_json = response.Candidates[0].Content.Parts[0].Text
+		response_json = strings.ReplaceAll(response.Candidates[0].Content.Parts[0].Text, "```", "")
+		response_json = strings.ReplaceAll(response_json, "json", "")
 	} else {
 		fmt.Println("No text found")
 	}

@@ -12,7 +12,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
+	//"path/filepath"
 	"time"
 )
 
@@ -31,41 +31,45 @@ func init() {
 
 }
 
-func downloadAttatchment(attatchment *jira.Attachment, file *os.File) {
-	req, err := http.NewRequest("GET", attatchment.Content, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	req.SetBasicAuth(JIRA_USERNAME, JIRA_PASSWORD)
+func downloadAttatchment(url_map map[string]string) map[string]string {
+	file_content_map := make(map[string]string)
+	for file_name, url := range url_map {
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+		req.SetBasicAuth(JIRA_USERNAME, JIRA_PASSWORD)
 
-	httpClient := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS12,
+		httpClient := &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					MinVersion: tls.VersionTLS12,
+				},
+				ForceAttemptHTTP2: false, // Disable HTTP/2
 			},
-			ForceAttemptHTTP2: false, // Disable HTTP/2
-		},
-		Timeout: 300 * time.Second, // Longer timeout for large files
-	}
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-	buf := make([]byte, 4096)
-	for {
-		n, err := resp.Body.Read(buf)
-		if err != nil && err != io.EOF {
-			fmt.Errorf("failed to read response body: %w", err)
+			Timeout: 300 * time.Second, // Longer timeout for large files
 		}
-		if n == 0 {
-			break
+		resp, err := httpClient.Do(req)
+		if err != nil {
+			log.Fatal(err)
 		}
-		if _, writeErr := file.Write(buf[:n]); writeErr != nil {
-			fmt.Errorf("failed to write to file: %w", writeErr)
+		buf := make([]byte, 4096)
+		for {
+			n, err := resp.Body.Read(buf)
+			if err != nil && err != io.EOF {
+				fmt.Errorf("failed to read response body: %w", err)
+			}
+			if n == 0 {
+				break
+			}
+			file_content_map[file_name] = string(buf[:n])
+			//if _, writeErr := file.Write(buf[:n]); writeErr != nil {
+			//	fmt.Errorf("failed to write to file: %w", writeErr)
+			//}
 		}
 	}
-
-	defer resp.Body.Close()
+	return file_content_map
+	//defer resp.Body.Close()
 }
 
 func Fetch(ticket_id string) (string, error) {
@@ -93,27 +97,34 @@ func Fetch(ticket_id string) (string, error) {
 	fmt.Printf("Priority: %s\n", issue.Fields.Priority.Name)
 	fmt.Printf("Lables: %s\n", labels)
 
-	var fileName []string
+	file_names := make(map[string]string)
 	if issue.Fields.Attachments != nil {
 		for _, attachment := range issue.Fields.Attachments {
 			file_name := attachment.Filename
 			fmt.Printf("attachment downloadig %s\n", file_name)
-			filePath := filepath.Join("attachments", file_name)
-			fileName = append(fileName, file_name)
-			err := os.MkdirAll(filepath.Dir(filePath), 0777)
-			if err != nil {
-				fmt.Printf("Failed to create directory: %v", err)
-			}
-			file, err := os.Create(filePath)
-			if err != nil {
-				fmt.Printf("Failed to create file: %v", err)
-			}
-			defer file.Close()
-			downloadAttatchment(attachment, file)
-
+			//filePath := filepath.Join("attachments", file_name)
+			file_names[file_name] = attachment.Content
+			//err := os.MkdirAll(filepath.Dir(filePath), 0777)
+			//if err != nil {
+			//	fmt.Printf("Failed to create directory: %v", err)
+			//}
+			//file, err := os.Create(filePath)
+			//if err != nil {
+			//	fmt.Printf("Failed to create file: %v", err)
+			//}
+			//defer file.Close()
 		}
 	}
+	//keys := func(m map[string]string) []string {
+	//	keys := make([]string, 0, len(m))
+	//	for k := range m {
+	//		keys = append(keys, k)
+	//	}
+	//	return keys
+	//}(file_names)
+	var file_name_content_map map[string]string = downloadAttatchment(file_names)
+
 	parserd_description := parser.ParseDescription(description, labels)
 	json_data, err := json.Marshal(parserd_description)
-	return ai_parser.ParseGemini(string(json_data), fileName)
+	return ai_parser.ParseGemini(string(json_data), file_name_content_map)
 }
